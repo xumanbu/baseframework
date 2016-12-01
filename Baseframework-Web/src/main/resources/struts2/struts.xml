@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE struts PUBLIC "-//Apache Software Foundation//DTD Struts Configuration 2.1//EN"
+        "http://struts.apache.org/dtds/struts-2.1.dtd">
+<struts>
+	<constant name="struts.convention.default.parent.package" value="defaultPackage" />
+	<constant name="struts.convention.action.name.separator" value="-" />
+	<constant name="struts.convention.result.path" value="/WEB-INF/view" />
+	<constant name="struts.devMode"  value="false" />
+	<!-- 配置struts2的常量,指定Struts的工厂类,托管给Spring -->  
+    <constant name="struts.objectFactory" value="spring" />   
+	<package name="defaultPackage" extends="convention-default">
+		<interceptors>
+			<interceptor-stack name="exceptionStack">
+				<interceptor-ref name="defaultStack"/>
+				<interceptor-ref name="exception">
+					<param name="logEnabled">true</param><!-- 输出异常日志 -->
+                    <param name="logLevel">ERROR</param>
+				</interceptor-ref>
+			</interceptor-stack>
+		</interceptors>
+		
+		<default-interceptor-ref name="exceptionStack" />
+	</package>
+
+</struts>

@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:aop="http://www.springframework.org/schema/aop"
+	xmlns:tx="http://www.springframework.org/schema/tx"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans 
+		   http://www.springframework.org/schema/beans/spring-beans-2.0.xsd
+           http://www.springframework.org/schema/aop 
+           http://www.springframework.org/schema/aop/spring-aop-2.0.xsd
+           http://www.springframework.org/schema/tx 
+           http://www.springframework.org/schema/tx/spring-tx-2.0.xsd"
+	default-autowire="autodetect" default-lazy-init="false">
+
+	<bean id="sockIOPool" class="com.danga.MemCached.SockIOPool"
+		factory-method="getInstance" init-method="initialize" destroy-method="shutDown" lazy-init="false" >
+		<constructor-arg value="needMemcachedPool"/>
+		<property name="servers">
+			<list>
+				<value>${memcache.server1}</value>
+<!-- 				<value>${memcache.server2}</value> -->
+<!--				<value>${memcache.server3}</value>-->
+<!--				<value>${memcache.server4}</value>-->
+			</list>
+		</property>
+		<property name="weights">
+		<list>
+			<value>${memcached.weights1}</value>
+			<value>${memcached.weights2}</value>
+<!--			<value>${memcached.weights3}</value>-->
+<!--			<value>${memcached.weights4}</value>-->
+		</list>
+		</property>
+		<property name="initConn">
+			<value>${memcache.initConn}</value>
+		</property>
+		<property name="minConn">
+			<value>${memcache.minConn}</value>
+		</property>
+		<property name="maxConn">
+			<value>${memcache.maxConn}</value>
+		</property>
+		<property name="maintSleep">
+			<value>${memcache.maintSleep}</value>
+		</property>
+		<property name="nagle">
+			<value>${memcache.nagle}</value>
+		</property>
+		<property name="socketTO">
+			<value>${memcache.socketTO}</value>
+		</property>
+	</bean>
+
+	<bean id="memcachedClient" class="com.danga.MemCached.MemCachedClient">
+		<constructor-arg value="needMemcachedPool"/>
+	</bean>
+	
+	<!-- 缓存接口 -->
+	<bean id="memcacheClient" class="com.cxypub.baseframework.sdk.cache.memcached.MemcacheCacheClient"/>
+</beans>

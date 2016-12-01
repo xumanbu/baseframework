@@ -1,0 +1,135 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:jee="http://www.springframework.org/schema/jee" xmlns:tx="http://www.springframework.org/schema/tx"
+	xmlns:context="http://www.springframework.org/schema/context" xmlns:aop="http://www.springframework.org/schema/aop"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.5.xsd http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-2.5.xsd http://www.springframework.org/schema/jee http://www.springframework.org/schema/jee/spring-jee-2.5.xsd http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-2.5.xsd http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-2.5.xsd"
+	default-lazy-init="true">
+	
+	<description>Spring基础配置文件</description>
+
+	<!-- 配置常规数据源，平时开发建议使用此配置。 -->
+	<bean id="master_dataSource" class="com.mchange.v2.c3p0.ComboPooledDataSource" destroy-method="close">  
+		<property name="driverClass" value="${datasource.driverClassName}"/>  
+	    <property name="jdbcUrl" value="${master.datasource.url}"/>  
+	    <property name="user" value="${master.datasource.username}"/>  
+	    <property name="password" value="${master.datasource.password}"/>  
+	    <property name="maxPoolSize" value="${master.datasource.pool.maxPoolSize}"/>  
+	    <property name="minPoolSize" value="${master.datasource.pool.minPoolSize}"/>  
+	    <property name="initialPoolSize" value="${master.datasource.pool.initialPoolSize}"/> 
+	    <property name="acquireIncrement" value="${master.datasource.pool.acquireIncrement}"/> 
+	    <property name="maxIdleTime" value="${master.datasource.pool.maxIdleTime}"/>  
+	    <property name="idleConnectionTestPeriod" value="${master.datasource.pool.idleConnectionTestPeriod}"/>  
+	</bean>
+	
+	<!-- 配置常规数据源，平时开发建议使用此配置。 -->
+<!-- 	<bean id="slave_dataSource" class="org.logicalcobwebs.proxool.ProxoolDataSource"> -->
+<!-- 		<property name="driver"><value>${datasource.driverClassName}</value></property> -->
+<!-- 	    <property name="driverUrl"><value>${slave.datasource.url}</value></property> -->
+<!-- 	    <property name="user"><value>${slave.datasource.username}</value></property> -->
+<!-- 	    <property name="password"><value>${slave.datasource.password}</value></property> -->
+<!-- 	    <property name="prototypeCount"><value>5</value></property> -->
+<!-- 	    <property name="maximumConnectionCount"><value>200</value></property> -->
+<!-- 	    <property name="minimumConnectionCount"><value>3</value></property> -->
+<!-- 	    <property name="trace"><value>false</value></property> -->
+<!-- 	    <property name="verbose"><value>true</value></property> -->
+<!-- 	</bean> -->
+	
+	<!-- 配置常规数据源，平时开发建议使用此配置。 -->
+	<bean id="dynamicDataSource" class="com.cxypub.baseframework.sdk.datasource.DynamicDataSource">
+		<property name="targetDataSources">  
+	      <map key-type="java.lang.String">  
+	         <entry key="master" value-ref="master_dataSource"/>  
+<!-- 	         <entry key="slave" value-ref="slave_dataSource"/>   -->
+	      </map>  
+	   </property> 
+	</bean>
+	
+	<bean id="lobHandler" class="org.springframework.jdbc.support.lob.DefaultLobHandler" lazy-init="true"/>
+	<!--Hibernate SessionFatory-->
+	<!-- org.springframework.orm.hibernate3.annotation.HibernateAnnotationSessionFactoryBean -->
+	<bean id="sessionFactory" class="org.springframework.orm.hibernate3.annotation.AnnotationSessionFactoryBean">
+		<!-- 扫描指定路径的*.class文件中的注解 -->
+		<property name="packagesToScan" value="com.cxypub" />
+		<property name="dataSource" ref="dynamicDataSource" />
+		<property name="lobHandler" ref="lobHandler"/>
+		<property name="hibernateProperties">
+			<props>
+				<prop key="hibernate.dialect">${hibernate.dialect}</prop>
+				<prop key="hibernate.show_sql">${hibernate.show_sql}</prop>
+				<!-- <prop key="hibernate.default_schema">SCHEMA_COMMONC_SCHEMA</prop> -->
+				<prop key="hibernate.generate_statistics">${hibernate.generate_statistics}</prop>
+				<!--当池中的连接耗尽的时候，一次性增加的连接数量,默认为3-->
+				<prop key="hibernate.c3p0.acquire_increment">${hibernate.c3p0.acquire_increment}</prop>
+				<!--每隔100秒检测连接是否可正常使用-->
+				<prop key="hibernate.c3p0.idle_test_period">${hibernate.c3p0.idle_test_period}</prop>
+				<!--最大连接数-->
+				<prop key="hibernate.c3p0.max_size">${hibernate.c3p0.max_size}</prop>
+				<!--statemnets缓存大小-->
+				<prop key="hibernate.c3p0.max_statements">${hibernate.c3p0.max_statements}</prop>
+				<!--连接池的最小连接数-->
+				<prop key="hibernate.c3p0.min_size">${hibernate.c3p0.min_size}</prop>
+				<!--连接超时时间-->
+				<prop key="hibernate.c3p0.timeout">${hibernate.c3p0.timeout}</prop>
+				<prop key="hibernate.order_updates">${hibernate.order_updates}</prop>
+				<prop key="hibernate.max_fetch_depth">${hibernate.max_fetch_depth}</prop>
+				<prop key="hibernate.default_batch_fetch_size">${hibernate.default_batch_fetch_size}</prop>
+				<prop key="hibernate.use_outer_join">${hibernate.use_outer_join}</prop>
+				<prop key="hibernate.jdbc.fetch_size">${hibernate.jdbc.fetch_size}</prop>
+				<prop key="hibernate.jdbc.batch_size">${hibernate.jdbc.batch_size}</prop>
+				<prop key="hibernate.cache.use_query_cache">${hibernate.cache.use_query_cache}</prop>
+				<prop key="hibernate.cache.provider_class">${hibernate.cache.provider_class}</prop>
+				<prop key="hibernate.query.factory_class">${hibernate.query.factory_class}</prop>
+				<!--不启用validation-->
+				<prop key="javax.persistence.validation.mode">none</prop> 
+			</props>
+		</property>
+		<property name="namingStrategy" ref="namingStrategy" />
+	</bean>
+	
+	<bean id="namingStrategy" class="org.hibernate.cfg.ImprovedNamingStrategy"/>
+	
+	<!--设置sessionFactory的别名为writeSessionFactory -->
+    <alias name="sessionFactory" alias="writeSessionFactory"/>
+    <alias name="sessionFactory" alias="readSessionFactory"/>
+	    
+	    
+	<!-- 用于编程式配置的事务模板：一般不建议使用。预留备用 -->
+	<bean id="transactionTemplate" class="org.springframework.transaction.support.TransactionTemplate">
+		<property name="transactionManager" ref="transactionManager" />
+	</bean>
+	
+	<!--Hibernate TransactionManager-->
+	<bean id="transactionManager"	class="org.springframework.orm.hibernate3.HibernateTransactionManager">
+		<property name="sessionFactory" ref="sessionFactory" />
+	</bean>
+	
+	<aop:config proxy-target-class="true">
+		<!-- 建议事务不要加在sdk层,加在platform等业务的service层 -->
+ 		<aop:advisor
+			pointcut="execution(* com.cxypub..*Service.*(..))"
+			advice-ref="txAdvice" />
+ 	</aop:config>
+	
+	<!--
+		 此配置是用于当类使用了@Transactional 注解时也会启动事务 这里的事务规则跟下面的txAdvice无关
+		此处的tx配置在aop:config的下面所以：当一个业务类在aop切面内，且配置了注解，会以切面增强为主
+	-->
+	<tx:annotation-driven proxy-target-class="true" transaction-manager="transactionManager"/>
+	
+	<!-- 当程序的增删改操作不起作用时，检查此处的代码。默认不配置的情况下，read-only为true -->
+	<tx:advice id="txAdvice" transaction-manager="transactionManager">
+		<tx:attributes>
+			<tx:method name="save*" />
+			<tx:method name="move*" />
+			<tx:method name="remove*" />
+			<tx:method name="delete*" />
+			<tx:method name="add*" />
+			<tx:method name="update*" />
+			<tx:method name="edit*" />
+			<tx:method name="batch*" />
+			<tx:method name="get*" read-only="true" /><!-- 设置为readonly时，不允许进行增删改操作 -->
+			<tx:method name="find*" read-only="true" />
+ 			<tx:method name="*" /> <!-- 此行不能删除，如果删除那么不在以上规则配置的方法比如（void test()）方法则不启动事务 -->
+		</tx:attributes>
+	</tx:advice>
+</beans>

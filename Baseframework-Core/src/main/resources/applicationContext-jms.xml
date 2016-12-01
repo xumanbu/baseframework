@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:context="http://www.springframework.org/schema/context"
+    xsi:schemaLocation="http://www.springframework.org/schema/beans 
+        http://www.springframework.org/schema/beans/spring-beans-2.5.xsd 
+        http://www.springframework.org/schema/context 
+        http://www.springframework.org/schema/context/spring-context-2.5.xsd"
+    default-autowire="byName">
+
+    <!-- ActiveMQ 连接工厂 -->
+    <bean id="connectionFactory" class="org.apache.activemq.ActiveMQConnectionFactory">
+    	<property name="brokerURL" value="tcp://127.0.0.1:61616"/>
+    </bean>
+    
+		<!-- Spring Caching 连接工厂 -->
+		<bean id="cachingConnectionFactory" class="org.springframework.jms.connection.CachingConnectionFactory">
+			<property name="targetConnectionFactory" ref="connectionFactory" />
+			<property name="sessionCacheSize" value="10" />
+		</bean>
+
+    <!-- Spring JMS Template -->
+    <bean id="jmsTemplate" class="org.springframework.jms.core.JmsTemplate">
+        <property name="connectionFactory" ref="cachingConnectionFactory" />
+        <property name="defaultDestinationName" value="defaultDestination" />
+    </bean>
+    
+    <!-- Queue定义 -->
+		<bean id="notifyQueue" class="org.apache.activemq.command.ActiveMQQueue">
+			<constructor-arg value="q.notify" />
+		</bean>
+	
+		<!-- Topic定义 -->
+		<bean id="notifyTopic" class="org.apache.activemq.command.ActiveMQTopic">
+			<constructor-arg value="t.notify" />
+		</bean>
+		
+		 <!-- 使用Spring JmsTemplate的消息生产者 -->
+		<bean id="notifyMessageProducer" class="com.cxypub.baseframework.sdk.jms.NotifyMessageProducer">
+			<property name="jmsTemplate" ref="jmsTemplate" />
+			<property name="notifyQueue" ref="notifyQueue" />
+			<property name="notifyTopic" ref="notifyTopic" />
+		</bean>
+	
+		<!-- 异步接收Queue消息Container -->
+ 		<bean id="queueContainer" class="org.springframework.jms.listener.DefaultMessageListenerContainer">
+			<property name="connectionFactory" ref="cachingConnectionFactory" />
+			<property name="destination" ref="notifyQueue" />
+			<property name="messageListener" ref="notifyMessageListener" />
+			<property name="concurrentConsumers" value="10" />
+		</bean>
+	
+		<!-- 异步接收Topic消息Container -->
+		<bean id="topicContainer" class="org.springframework.jms.listener.DefaultMessageListenerContainer">
+			<property name="connectionFactory" ref="cachingConnectionFactory" />
+			<property name="destination" ref="notifyTopic" />
+			<property name="messageListener" ref="notifyMessageListener" />
+		</bean>
+	
+		<!-- 异步接收消息处理类 -->
+		<bean id="notifyMessageListener" class="com.cxypub.baseframework.sdk.jms.NotifyMessageListener" />
+    
+</beans>
